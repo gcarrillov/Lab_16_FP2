@@ -1,46 +1,49 @@
 package lab16;
 import java.util.*;
-
 public class Ejercito {
-    private String reino;
-    private List<Soldado> soldados;
-    private static final Random random = new Random();
+   private String id;
+    private ArrayList<Soldado> soldados;
+    private double promedioAtaque;
+    private double promedioDefensa;
+    private double promedioVida;
 
-    public Ejercito(String reino) {
-        this.reino = reino;
-        this.soldados = new ArrayList<>();
-        generarSoldadosAleatorios();
-    }
-
-    private void generarSoldadosAleatorios() {
-        int cantidadSoldados = random.nextInt(10) + 1;
-        for (int i = 0; i < cantidadSoldados; i++) {
+    public Ejercito(String id, String mapa, String reino) {
+        this.id = id;
+        soldados = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
             soldados.add(new Soldado());
         }
+        calcularPromedios();
+        ajustarPorMapa(mapa, reino);
     }
 
-    public void aplicarBonusTerritorio(String territorio) {
-        if ((reino.equals("Inglaterra") && territorio.equals("bosque")) ||
-            (reino.equals("Francia") && territorio.equals("campo abierto"))) {
-            for (Soldado s : soldados) {
-                s.incrementarVida(1);
-            }
+    private void calcularPromedios() {
+        promedioAtaque = soldados.stream().mapToDouble(Soldado::getAtaque).average().orElse(0);
+        promedioDefensa = soldados.stream().mapToDouble(Soldado::getDefensa).average().orElse(0);
+        promedioVida = soldados.stream().mapToDouble(Soldado::getVida).average().orElse(0);
+    }
+
+    private void ajustarPorMapa(String mapa, String reino) {
+        if ((mapa.equals("montanas") || mapa.equals("pantanos")) && reino.equals("Norte")) {
+            promedioAtaque++;
+            promedioDefensa++;
+            promedioVida++;
+        } else if ((mapa.equals("campo abierto") || mapa.equals("bosque")) && reino.equals("Sur")) {
+            promedioAtaque++;
+            promedioDefensa++;
+            promedioVida++;
         }
     }
 
-    public String getReino() {
-        return reino;
+    public String getId() {
+        return id;
     }
 
-    public int obtenerVidaTotal() {
-        int totalVida = 0;
-        for (Soldado s : soldados) {
-            totalVida += s.getVida();
-        }
-        return totalVida;
+    public double getPromedioEstadisticas() {
+        return (promedioAtaque + promedioDefensa + promedioVida) / 3;
     }
 
-    public boolean estaVivo() {
-        return !soldados.isEmpty();
-    }
+    public ArrayList<Soldado> getSoldados() {
+        return soldados;
+    } 
 }

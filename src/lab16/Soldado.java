@@ -1,28 +1,30 @@
 package lab16;
-import java.util.*; 
-
+import java.util.*;
 public class Soldado {
-    private int ataque;
-    private int defensa;
     private int vida;
-    private static final Random random = new Random();
+    private int defensa;
+    private int ataque;
 
     public Soldado() {
-        this.ataque = random.nextInt(10) + 1;
-        this.defensa = random.nextInt(10) + 1;
-        this.vida = random.nextInt(10) + 5;
-    }
-
-    public void recibirDanio(int danio) {
-        this.vida -= danio;
-        if (vida < 0) vida = 0;
-    }
-
-    public void incrementarVida(int cantidad) {
-        this.vida += cantidad;
+        Random random = new Random();
+        vida = random.nextInt(6) + 5;
+        defensa = random.nextInt(6) + 5;
+        ataque = random.nextInt(6) + 5;
     }
 
     public int getVida() {
         return vida;
+    }
+
+    public int getDefensa() {
+        return defensa;
+    }
+
+    public int getAtaque() {
+        return ataque;
+    }
+
+    public double getPromedioEstadisticas() {
+        return (vida + defensa + ataque) / 3.0;
     }
 }

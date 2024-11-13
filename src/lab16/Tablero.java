@@ -1,100 +1,109 @@
 package lab16;
+import java.util.*;
+
 public class Tablero {
-    private Soldado[][] tablero;
-    private int dimension;
+    private String[][] tablero;
+    private Random random;
 
-    public Tablero(int dimension) {
-        this.dimension = dimension;
-        this.tablero = new Soldado[dimension][dimension];
-    }
-    public int getDimension() {
-        return dimension;
-    }
-
-    public boolean colocarSoldado(Soldado soldado, int x, int y) {
-        if (esPosicionValida(x, y) && tablero[x][y] == null) {
-            tablero[x][y] = soldado;
-            return true;
-        }
-        return false;
+    public Tablero(Reino norte, Reino sur) {
+        tablero = new String[10][10];
+        random = new Random();
+        colocarEjercitos(norte);
+        colocarEjercitos(sur);
     }
 
-    public boolean moverSoldado(int x, int y, int direccion) {
-        if (!esPosicionValida(x, y) || tablero[x][y] == null || !tablero[x][y].isVivo()) {
-            return false;
+    private void colocarEjercitos(Reino reino) {
+        for (Ejercito ejercito : reino.getEjercitos()) {
+            int x, y;
+            do {
+                x = random.nextInt(10);
+                y = random.nextInt(10);
+            } while (tablero[x][y] != null);
+            tablero[x][y] = ejercito.getId();
         }
-
-        int nuevoX = x, nuevoY = y;
-
-        switch (direccion) {
-            case 1: nuevoX -= 1; break; // Arriba
-            case 2: nuevoX += 1; break; // Abajo
-            case 3: nuevoY -= 1; break; // Izquierda
-            case 4: nuevoY += 1; break; // Derecha
-            default: return false;
-        }
-
-        if (!esPosicionValida(nuevoX, nuevoY)) {
-            return false;
-        }
-
-        Soldado soldadoActual = tablero[x][y];
-
-        // Si hay un enemigo en la posición de destino, se produce una batalla
-        if (tablero[nuevoX][nuevoY] != null && tablero[nuevoX][nuevoY].isVivo()) {
-            Soldado enemigo = tablero[nuevoX][nuevoY];
-            resolverBatalla(soldadoActual, enemigo);
-            // Si el enemigo muere, el soldado actual toma la posición
-            if (!enemigo.isVivo()) {
-                tablero[nuevoX][nuevoY] = soldadoActual;
-                tablero[x][y] = null;
-            }
-        } else {
-            // Movimiento normal si la posición está vacía
-            tablero[nuevoX][nuevoY] = soldadoActual;
-            tablero[x][y] = null;
-        }
-
-        return true;
-    }
-
-
-    private void resolverBatalla(Soldado soldado1, Soldado soldado2) {
-        System.out.println("Batalla entre " + soldado1.getNombre() + " y " + soldado2.getNombre() + " !");
-        if (soldado1.getVidaActual() > soldado2.getVidaActual()) {
-            System.out.println(soldado1.getNombre() + " gana la batalla");
-            soldado2.morir();
-        } else {
-            System.out.println(soldado2.getNombre() + " gana la batalla");
-            soldado1.morir();
-        }
-    }
-    
-    private boolean esPosicionValida(int x, int y) {
-        return x >= 0 && x < dimension && y >= 0 && y < dimension;
     }
 
     public void mostrarTablero() {
-        for (int i = 0; i < dimension; i++) {
-            for (int j = 0; j < dimension; j++) {
-                if (tablero[i][j] == null) {
-                    System.out.print("[   ] ");
-                } else {
-                    System.out.print("[" + tablero[i][j].toString() + "] ");
-                }
+        for (String[] fila : tablero) {
+            for (String celda : fila) {
+                System.out.print((celda != null ? celda : " . ") + " ");
             }
             System.out.println();
         }
     }
 
-    public boolean haySoldados() {
-        for (int i = 0; i < dimension; i++) {
-            for (int j = 0; j < dimension; j++) {
-                if (tablero[i][j] != null && tablero[i][j].isVivo()) {
-                    return true;
+    public void moverEjercito(Reino reino, Scanner scanner) {
+        System.out.println("Selecciona el ejercito que quieres mover:");
+        ArrayList<Ejercito> ejercitos = reino.getEjercitos();
+        for (int i = 0; i < ejercitos.size(); i++) {
+            System.out.println(i + ": " + ejercitos.get(i).getId());
+        }
+        int opcion = scanner.nextInt();
+        Ejercito ejercito = ejercitos.get(opcion);
+
+        System.out.println("Selecciona la direccion (1: arriba, 2: abajo, 3: izquierda, 4: derecha):");
+        int direccion = scanner.nextInt();
+
+        moverEjercitoEnTablero(ejercito, direccion, reino);
+    }
+
+    private void moverEjercitoEnTablero(Ejercito ejercito, int direccion, Reino reino) {
+        int[] posicion = encontrarPosicion(ejercito.getId());
+        if (posicion == null) return;
+
+        int x = posicion[0];
+        int y = posicion[1];
+        tablero[x][y] = null;
+
+        switch (direccion) {
+            case 1 -> x = Math.max(x - 1, 0);
+            case 2 -> x = Math.min(x + 1, 9);
+            case 3 -> y = Math.max(y - 1, 0);
+            case 4 -> y = Math.min(y + 1, 9);
+        }
+
+        if (tablero[x][y] == null) {
+            tablero[x][y] = ejercito.getId();
+        } else {
+            Ejercito enemigo = encontrarEjercito(tablero[x][y], reino);
+            if (enemigo != null) {
+                resolverBatalla(ejercito, enemigo, reino);
+            }
+        }
+    }
+
+    private void resolverBatalla(Ejercito ejercito, Ejercito enemigo, Reino reino) {
+        System.out.println("Batalla entre " + ejercito.getId() + " y " + enemigo.getId());
+        if (new Random().nextBoolean()) {
+            if (ejercito.getPromedioEstadisticas() > enemigo.getPromedioEstadisticas()) {
+                System.out.println(ejercito.getId() + " gana la batalla!");
+                reino.removerEjercito(enemigo);
+            } else {
+                System.out.println(enemigo.getId() + " gana la batalla!");
+                reino.removerEjercito(ejercito);
+            }
+        } else {
+            System.out.println("Batalla por turnos - aun no implementada");
+        }
+    }
+
+    private int[] encontrarPosicion(String id) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (id.equals(tablero[i][j])) {
+                    return new int[]{i, j};
                 }
             }
         }
-        return false;
+        return null;
+    }
+
+    private Ejercito encontrarEjercito(String id, Reino reino) {
+        for (Ejercito ejercito : reino.getEjercitos()) {
+            if (ejercito.getId().equals(id)) {
+                return ejercito;
+            }
+        }
+        return null;
     }
 }
