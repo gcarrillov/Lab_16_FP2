@@ -1,55 +1,28 @@
 package lab16;
 import java.util.*; 
-class Soldado {
-    private String nombre;
-    private int nivelAtaque;
-    private int nivelDefensa;
-    private int nivelVida;
-    private int vidaActual;
-    private int velocidad;
-    private String actitud;
-    private boolean vive;
 
-    public Soldado(String nombre) {
-        this.nombre = nombre;
-        Random rand = new Random();
-        this.nivelAtaque = rand.nextInt(5) + 1;
-        this.nivelDefensa = rand.nextInt(5) + 1;
-        this.nivelVida = rand.nextInt(5) + 1;
-        this.vidaActual = nivelVida;
-        this.velocidad = 0;
-        this.actitud = "defensiva";
-        this.vive = true;
+public class Soldado {
+    private int ataque;
+    private int defensa;
+    private int vida;
+    private static final Random random = new Random();
+
+    public Soldado() {
+        this.ataque = random.nextInt(10) + 1;
+        this.defensa = random.nextInt(10) + 1;
+        this.vida = random.nextInt(10) + 5;
     }
 
-    public void serAtacado(int damage) {
-        if (vive) {
-            vidaActual -= damage;
-            if (vidaActual <= 0) {
-                morir();
-            }
-        }
+    public void recibirDanio(int danio) {
+        this.vida -= danio;
+        if (vida < 0) vida = 0;
     }
 
-    public void morir() {
-        vive = false;
-        vidaActual = 0;
+    public void incrementarVida(int cantidad) {
+        this.vida += cantidad;
     }
 
-    public int getVidaActual() {
-        return vidaActual;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public boolean isVivo() {
-        return vive;
-    }
-
-    @Override
-    public String toString() {
-        return nombre + (vive ? " (V)" : " (X)");
+    public int getVida() {
+        return vida;
     }
 }
